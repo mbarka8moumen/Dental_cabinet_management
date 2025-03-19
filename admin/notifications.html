@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Notifications - RM Dentist Labs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="shortcut icon" href="../favicon.svg" type="image/svg+xml">
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-blue-900 text-white p-5">
+            <a href="../index.html">
+                <h1 class="text-2xl font-bold mb-5">RM Dentist Labs</h1>
+            </a>
+            <nav>
+                <ul>
+                    <li class="mb-3"><a href="adminDashboard.html" class="block p-2 rounded hover:bg-blue-700">Dashboard</a></li>
+                    <li class="mb-3"><a href="patients.html" class="block p-2 rounded hover:bg-blue-700">Patients</a></li>
+                    <li class="mb-3"><a href="appointments.html" class="block p-2 rounded hover:bg-blue-700">Appointments</a></li>
+                    <li class="mb-3"><a href="doctors.html" class="block p-2 rounded hover:bg-blue-700">Doctors</a></li>
+                    <li class="mb-3"><a href="notifications.html" class="block p-2 rounded bg-blue-700">Notifications</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6">
+            <h2 class="text-3xl font-semibold mb-6">Manage Notifications</h2>
+
+            <!-- Notification Form -->
+            <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-2xl">
+                <h3 class="text-xl font-semibold mb-4">Create Notification</h3>
+                <input type="email" id="patientEmail" placeholder="Enter Patient Email" class="w-full p-2 border rounded mb-2">
+                <textarea id="notifMessage" placeholder="Enter Notification Message" class="w-full p-2 border rounded mb-2"></textarea>
+                <button id="addNotif" class="w-full bg-blue-600 text-white p-2 rounded">Add Notification</button>
+                <button id="updateNotif" class="w-full bg-green-600 text-white p-2 rounded hidden">Update Notification</button>
+            </div>
+
+            <!-- Notifications List -->
+            <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-2xl mt-6">
+                <h3 class="text-xl font-semibold mb-4">Existing Notifications</h3>
+                <ul id="notifList" class="space-y-2">
+                    <!-- Notifications will be added here -->
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const notifList = document.getElementById("notifList");
+            const patientEmail = document.getElementById("patientEmail");
+            const notifMessage = document.getElementById("notifMessage");
+            const addNotif = document.getElementById("addNotif");
+            const updateNotif = document.getElementById("updateNotif");
+
+            let notifications = JSON.parse(localStorage.getItem("notifications")) || [];
+            let editIndex = null;
+
+            function updateNotifications() {
+                notifList.innerHTML = "";
+                notifications.forEach((notif, index) => {
+                    let li = document.createElement("li");
+                    li.classList = "flex justify-between p-3 border rounded bg-gray-100";
+                    li.innerHTML = `
+                        <div>
+                            <p><strong>Email:</strong> ${notif.email}</p>
+                            <p><strong>Message:</strong> ${notif.message}</p>
+                        </div>
+                        <div class="space-x-2">
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="editNotification(${index})">Edit</button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="deleteNotification(${index})">Delete</button>
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded" onclick="sendNotification('${notif.email}', '${notif.message}')">Send</button>
+                        </div>
+                    `;
+                    notifList.appendChild(li);
+                });
+
+                localStorage.setItem("notifications", JSON.stringify(notifications));
+            }
+
+            // Add new notification
+            addNotif.addEventListener("click", function () {
+                if (patientEmail.value.trim() !== "" && notifMessage.value.trim() !== "") {
+                    notifications.push({
+                        email: patientEmail.value.trim(),
+                        message: notifMessage.value.trim()
+                    });
+                    patientEmail.value = "";
+                    notifMessage.value = "";
+                    updateNotifications();
+                }
+            });
+
+            // Edit notification
+            window.editNotification = function (index) {
+                patientEmail.value = notifications[index].email;
+                notifMessage.value = notifications[index].message;
+                editIndex = index;
+                addNotif.classList.add("hidden");
+                updateNotif.classList.remove("hidden");
+            };
+
+            // Update notification
+            updateNotif.addEventListener("click", function () {
+                if (editIndex !== null) {
+                    notifications[editIndex] = {
+                        email: patientEmail.value.trim(),
+                        message: notifMessage.value.trim()
+                    };
+                    editIndex = null;
+                    patientEmail.value = "";
+                    notifMessage.value = "";
+                    addNotif.classList.remove("hidden");
+                    updateNotif.classList.add("hidden");
+                    updateNotifications();
+                }
+            });
+
+            // Delete notification
+            window.deleteNotification = function (index) {
+                notifications.splice(index, 1);
+                updateNotifications();
+            };
+
+            // Simulate sending email (replace with real API later)
+            window.sendNotification = function (email, message) {
+                alert(`Sending email to ${email} with message: "${message}"`);
+                // Here, you can integrate an email API like SendGrid, Nodemailer, etc.
+            };
+
+            updateNotifications();
+        });
+    </script>
+
+</body>
+</html>
