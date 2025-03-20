@@ -9,13 +9,11 @@
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen">
-        <!-- Sidebar -->
         <aside class="w-64 bg-blue-900 text-white p-5">
-            <a href="../index.html">
-                <h1 class="text-2xl font-bold mb-5">RM Dentist Labs</h1>
-            </a>
+            <h1 class="text-2xl font-bold mb-5">RM Dentist Labs</h1>
             <nav>
                 <ul>
+                    
                     <li class="mb-3"><a href="adminDashboard.html" class="block p-2 rounded hover:bg-blue-700">Dashboard</a></li>
                     <li class="mb-3"><a href="patients.html" class="block p-2 rounded hover:bg-blue-700">Patients</a></li>
                     <li class="mb-3"><a href="appointments.html" class="block p-2 rounded hover:bg-blue-700">Appointments</a></li>
@@ -25,115 +23,116 @@
             </nav>
         </aside>
 
-        <!-- Main Content -->
         <main class="flex-1 p-6">
             <h2 class="text-3xl font-semibold mb-6">Manage Notifications</h2>
 
-            <!-- Notification Form -->
-            <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-2xl">
-                <h3 class="text-xl font-semibold mb-4">Create Notification</h3>
-                <input type="email" id="patientEmail" placeholder="Enter Patient Email" class="w-full p-2 border rounded mb-2">
-                <textarea id="notifMessage" placeholder="Enter Notification Message" class="w-full p-2 border rounded mb-2"></textarea>
-                <button id="addNotif" class="w-full bg-blue-600 text-white p-2 rounded">Add Notification</button>
-                <button id="updateNotif" class="w-full bg-green-600 text-white p-2 rounded hidden">Update Notification</button>
+            <button onclick="showForm()" class="bg-blue-600 text-white p-2 rounded mb-4 hover:bg-blue-700">Add Notification</button>
+
+            <div id="notifForm" class="hidden bg-white p-6 rounded-lg shadow-md w-full max-w-2xl">
+                <h3 class="text-xl font-semibold mb-4">Notification Details</h3>
+                <input type="text" id="notifTitle" placeholder="Title" class="w-full p-2 border rounded mb-2">
+                <textarea id="notifMessage" placeholder="Message" class="w-full p-2 border rounded mb-2"></textarea>
+                <input type="date" id="notifDate" class="w-full p-2 border rounded mb-2">
+                <div class="flex justify-end space-x-2">
+                    <button id="saveNotif" class="bg-green-600 text-white p-2 rounded hover:bg-green-700">Save</button>
+                    <button onclick="hideForm()" class="bg-gray-400 text-white p-2 rounded hover:bg-gray-500">Cancel</button>
+                </div>
             </div>
 
-            <!-- Notifications List -->
-            <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-2xl mt-6">
-                <h3 class="text-xl font-semibold mb-4">Existing Notifications</h3>
-                <ul id="notifList" class="space-y-2">
-                    <!-- Notifications will be added here -->
-                </ul>
-            </div>
+            <table class="w-full bg-white rounded-lg shadow-md mt-6">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="p-3 text-left">Title</th>
+                        <th class="p-3 text-left">Message</th>
+                        <th class="p-3 text-left">Date</th>
+                        <th class="p-3 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="notifTable">
+                    <tr class="border-b">
+                        <td class="p-3">LLLL</td>
+                        <td class="p-3">KKKKK</td>
+                        <td class="p-3">12/03/2025</td>
+                        <td class="p-3 space-x-2">
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">Edit</button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </main>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const notifList = document.getElementById("notifList");
-            const patientEmail = document.getElementById("patientEmail");
-            const notifMessage = document.getElementById("notifMessage");
-            const addNotif = document.getElementById("addNotif");
-            const updateNotif = document.getElementById("updateNotif");
+        let notifications = JSON.parse(localStorage.getItem("notifications")) || [];
+        let editIndex = null;
 
-            let notifications = JSON.parse(localStorage.getItem("notifications")) || [];
-            let editIndex = null;
-
-            function updateNotifications() {
-                notifList.innerHTML = "";
-                notifications.forEach((notif, index) => {
-                    let li = document.createElement("li");
-                    li.classList = "flex justify-between p-3 border rounded bg-gray-100";
-                    li.innerHTML = `
-                        <div>
-                            <p><strong>Email:</strong> ${notif.email}</p>
-                            <p><strong>Message:</strong> ${notif.message}</p>
-                        </div>
-                        <div class="space-x-2">
-                            <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="editNotification(${index})">Edit</button>
-                            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="deleteNotification(${index})">Delete</button>
-                            <button class="bg-blue-500 text-white px-3 py-1 rounded" onclick="sendNotification('${notif.email}', '${notif.message}')">Send</button>
-                        </div>
-                    `;
-                    notifList.appendChild(li);
-                });
-
-                localStorage.setItem("notifications", JSON.stringify(notifications));
+        function showForm(index = null) {
+            document.getElementById("notifForm").classList.remove("hidden");
+            editIndex = index;
+            if (index !== null) {
+                document.getElementById("notifTitle").value = notifications[index].title;
+                document.getElementById("notifMessage").value = notifications[index].message;
+                document.getElementById("notifDate").value = notifications[index].date;
+            } else {
+                document.getElementById("notifTitle").value = "";
+                document.getElementById("notifMessage").value = "";
+                document.getElementById("notifDate").value = "";
             }
+        }
 
-            // Add new notification
-            addNotif.addEventListener("click", function () {
-                if (patientEmail.value.trim() !== "" && notifMessage.value.trim() !== "") {
-                    notifications.push({
-                        email: patientEmail.value.trim(),
-                        message: notifMessage.value.trim()
-                    });
-                    patientEmail.value = "";
-                    notifMessage.value = "";
-                    updateNotifications();
-                }
-            });
+        function hideForm() {
+            document.getElementById("notifForm").classList.add("hidden");
+        }
 
-            // Edit notification
-            window.editNotification = function (index) {
-                patientEmail.value = notifications[index].email;
-                notifMessage.value = notifications[index].message;
-                editIndex = index;
-                addNotif.classList.add("hidden");
-                updateNotif.classList.remove("hidden");
-            };
+        // function hideForm() {
+        //     document.getElementById("notifForm").classList.add("hidden");
+        //     editIndex = null;
+        // }
 
-            // Update notification
-            updateNotif.addEventListener("click", function () {
-                if (editIndex !== null) {
-                    notifications[editIndex] = {
-                        email: patientEmail.value.trim(),
-                        message: notifMessage.value.trim()
-                    };
-                    editIndex = null;
-                    patientEmail.value = "";
-                    notifMessage.value = "";
-                    addNotif.classList.remove("hidden");
-                    updateNotif.classList.add("hidden");
-                    updateNotifications();
-                }
-            });
+        // function saveNotification() {
+        //     const title = document.getElementById("notifTitle").value.trim();
+        //     const message = document.getElementById("notifMessage").value.trim();
+        //     const date = document.getElementById("notifDate").value;
 
-            // Delete notification
-            window.deleteNotification = function (index) {
-                notifications.splice(index, 1);
-                updateNotifications();
-            };
+        //     if (title && message && date) {
+        //         if (editIndex !== null) {
+        //             notifications[editIndex] = { title, message, date };
+        //         } else {
+        //             notifications.push({ title, message, date });
+        //         }
+        //         localStorage.setItem("notifications", JSON.stringify(notifications));
+        //         hideForm();
+        //         renderTable();
+        //     }
+        // }
 
-            // Simulate sending email (replace with real API later)
-            window.sendNotification = function (email, message) {
-                alert(`Sending email to ${email} with message: "${message}"`);
-                // Here, you can integrate an email API like SendGrid, Nodemailer, etc.
-            };
+        // function deleteNotification(index) {
+        //     notifications.splice(index, 1);
+        //     localStorage.setItem("notifications", JSON.stringify(notifications));
+        //     renderTable();
+        // }
 
-            updateNotifications();
-        });
+        // function renderTable() {
+        //     const notifTable = document.getElementById("notifTable");
+        //     notifTable.innerHTML = "";
+        //     notifications.forEach((notif, index) => {
+        //         notifTable.innerHTML += `
+        //             <tr class="border-b">
+        //                 <td class="p-3">${notif.title}</td>
+        //                 <td class="p-3">${notif.message}</td>
+        //                 <td class="p-3">${notif.date}</td>
+        //                 <td class="p-3">
+        //                     <button onclick="showForm(${index})" class="bg-yellow-500 text-white px-3 py-1 rounded">Edit</button>
+        //                     <button onclick="deleteNotification(${index})" class="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
+        //                 </td>
+        //             </tr>
+        //         `;
+        //     });
+        // }
+
+        // document.getElementById("saveNotif").addEventListener("click", saveNotification);
+        // renderTable();
     </script>
-
 </body>
 </html>
